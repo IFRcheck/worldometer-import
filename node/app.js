@@ -110,25 +110,40 @@ const c = new Crawler({
 });
 
 //Cron:
-cron.schedule('59 * * * * *', () => {
+/*cron.schedule('59 * * * * *', () => {
   dbTask();
 }, {
   scheduled: true,
   timezone: "Europe/Berlin"
-});
+}); */
 
 // API Starts here
 app.get('/', function(req, res) {
   res.send("<h1>API working.</h1>");
 });
 
-app.get('/getByIFR', function(req, res) {
+app.get('/getData', function(req, res) {
   const apiUser = process.env.apiUser;
   let reqUser = req.query.user;
   if (reqUser === apiUser) {
-    res.send("<p>Yay! It worked!</p>");
+    //res.send("<p>Yay! It worked!</p>");
+    let argument = req.query.argument;
+    let sql = `SELECT * from covid_numbers WHERE ` + argument + ` `;
+    connection.query(sql, function(error, results, fields) {
+      if(error) {
+        res.send("You made this Error: " + error);
+      }
+      if(results) {
+        if(results.length > 0) {
+          res.send(results);
+        } else {
+          res.send("No entries.");
+        }
+      }
+    });
   } else {
     res.send("Access denied");
+    return false;
   }
 });
 
