@@ -17,15 +17,16 @@ const connection = mysql.createConnection({
   port: process.env.port
 });
 
+// Function to empty DB and reset AI and call the Cron-Crawler
 function dbTask() {
   console.log("DB Caller");
   connection.query('TRUNCATE TABLE covid_numbers', function(error, results, fields) {
-    if(error) {
+    if (error) {
       console.log(error);
     }
   });
   connection.query('ALTER TABLE covid_numbers AUTO_INCREMENT = 1', function(error, results, fields) {
-    if(error) {
+    if (error) {
       console.log(error);
     }
   });
@@ -35,27 +36,25 @@ function dbTask() {
   });
 }
 
-function updateDatabase(country, infections, deaths, population, ifr, cfr) {
+// Function to update Database from Cronjob
+function updateDatabase(country, infections, deaths, population, ifr, aboveIoannidis, cfr) {
   let sql = `INSERT INTO covid_numbers
   (
-    country, infections, deaths, population, IFR, CFR, date
+    country, infections, deaths, population, IFR, aboveIoannidis, CFR, date
   )
   VALUES
   (
-    ?, ?, ?, ?, ?, ?, SYSDATE()
+    ?, ?, ?, ?, ?, ?, ?, SYSDATE()
   )`;
 
-  connection.query(sql, [country, infections, deaths, population, ifr, cfr], function(error, results, fields) {
+  connection.query(sql, [country, infections, deaths, population, ifr, aboveIoannidis, cfr], function(error, results, fields) {
     if (error) {
-      if (error.code === 'ER_DUP_ENTRY') {
-        console.log("Duplicate Entry");
-      } else {
-        console.log(error.code);
-      }
+        console.log(error);
     }
   });
 }
 
+// Crawler for Cron
 const c = new Crawler({
   callback: (error, res, done) => {
     if (error) {
@@ -91,12 +90,18 @@ const c = new Crawler({
 
         ifr = Math.round((ifr + Number.EPSILON) * 100) / 100;
 
+        let aboveIoannidis = 0;
+
+        if(ifr > 0.15) {
+          aboveIoannidis = 1;
+        }
+
         let cfr = (deaths / (infections / 100));
 
         cfr = Math.round((cfr + Number.EPSILON) * 100) / 100;
 
         if (country === "MS Zaandam" || country === "Diamond Princess") {} else {
-          updateDatabase(country, infections, deaths, population, ifr, cfr);
+          updateDatabase(country, infections, deaths, population, ifr, aboveIoannidis, cfr);
         }
       }
     }
@@ -104,15 +109,27 @@ const c = new Crawler({
   }
 });
 
-app.get('/', function(req, res){
-  console.log("GET caller");
-});
-
-cron.schedule('59 59 3 * * *', () => {
+//Cron:
+cron.schedule('59 * * * * *', () => {
   dbTask();
 }, {
   scheduled: true,
   timezone: "Europe/Berlin"
+});
+
+// API Starts here
+app.get('/', function(req, res) {
+  res.send("<h1>API working.</h1>");
+});
+
+app.get('/getByIFR', function(req, res) {
+  const apiUser = process.env.apiUser;
+  let reqUser = req.query.user;
+  if (reqUser === apiUser) {
+    res.send("<p>Yay! It worked!</p>");
+  } else {
+    res.send("Access denied");
+  }
 });
 
 app.listen(3000, () => {
