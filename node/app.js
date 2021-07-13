@@ -110,19 +110,19 @@ const c = new Crawler({
 });
 
 //Cron:
-/*cron.schedule('59 * * * * *', () => {
+cron.schedule('59 59 3 * * *', () => {
   dbTask();
 }, {
   scheduled: true,
   timezone: "Europe/Berlin"
-}); */
+});
 
 // API Starts here
 app.get('/', function(req, res) {
   res.send("<h1>API working.</h1>");
 });
 
-app.get('/getData', function(req, res) {
+/* app.get('/getData', function(req, res) {
   const apiUser = process.env.apiUser;
   let reqUser = req.query.user;
   if (reqUser === apiUser) {
@@ -145,7 +145,7 @@ app.get('/getData', function(req, res) {
     res.send("Access denied");
     return false;
   }
-});
+}); */
 
 app.listen(3000, () => {
   console.log("Server running on port 3000");
