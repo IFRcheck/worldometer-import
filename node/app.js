@@ -2,12 +2,14 @@ require('dotenv')
   .config({ path: '../.env' });
 const Crawler = require('crawler');
 const mysql = require('mysql');
-const express = require("express");
+const express = require('express');
+const cors = require('cors');
 const app = express();
 const cron = require('node-cron');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cors());
 
 const connection = mysql.createConnection({
   host: process.env.host,
@@ -47,9 +49,10 @@ function updateDatabase(country, infections, deaths, population, ifr, aboveIoann
     ?, ?, ?, ?, ?, ?, ?, SYSDATE()
   )`;
 
-  connection.query(sql, [country, infections, deaths, population, ifr, aboveIoannidis, cfr], function(error, results, fields) {
+  connection.query(sql, [country, infections, deaths, population, ifr, aboveIoannidis, cfr], function(error, results,
+    fields) {
     if (error) {
-        console.log(error);
+      console.log(error);
     }
   });
 }
@@ -92,7 +95,7 @@ const c = new Crawler({
 
         let aboveIoannidis = 0;
 
-        if(ifr > 0.15) {
+        if (ifr > 0.15) {
           aboveIoannidis = 1;
         }
 
@@ -110,7 +113,7 @@ const c = new Crawler({
 });
 
 //Cron:
-cron.schedule('59 59 3 * * *', () => {
+cron.schedule('59 * * * * *', () => { // 59 59 3 * * *
   dbTask();
 }, {
   scheduled: true,
@@ -122,30 +125,33 @@ app.get('/', function(req, res) {
   res.send("<h1>API working.</h1>");
 });
 
-/* app.get('/getData', function(req, res) {
-  const apiUser = process.env.apiUser;
-  let reqUser = req.query.user;
-  if (reqUser === apiUser) {
-    //res.send("<p>Yay! It worked!</p>");
-    let argument = req.query.argument;
-    let sql = `SELECT * from covid_numbers WHERE ` + argument + ` `;
-    connection.query(sql, function(error, results, fields) {
-      if(error) {
-        res.send("You made this Error: " + error);
+app.get('/getData', function(req, res) {
+  let argument = req.query.argument;
+  let sql = `SELECT * from covid_numbers WHERE ` + argument + ` `;
+  connection.query(sql, function(error, results, fields) {
+    if (error) {
+      res.send("You made this Error: " + error);
+    }
+    if (results) {
+      if (results.length > 0) {
+        res.send(results);
+      } else {
+        res.send("No entries.");
       }
-      if(results) {
-        if(results.length > 0) {
-          res.send(results);
-        } else {
-          res.send("No entries.");
-        }
-      }
-    });
-  } else {
-    res.send("Access denied");
-    return false;
-  }
-}); */
+    }
+  });
+});
+
+app.get('/getCount', function(req, res) {
+  connection.query('SELECT COUNT(*) AS count from covid_numbers', function(error, results, fields) {
+    if (error) {
+      res.send("You made this Error: " + error);
+    }
+    if (results) {
+      res.send(results)
+    }
+  });
+});
 
 app.listen(3000, () => {
   console.log("Server running on port 3000");
