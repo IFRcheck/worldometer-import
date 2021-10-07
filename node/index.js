@@ -123,7 +123,7 @@ app.get('/', function(req, res) {
 
 app.get('/getData', function(req, res) {
 	let argument = req.query.argument;
-	let sql = `SELECT * from covid_numbers WHERE ` + argument + ` `;
+	let sql = `SELECT t.* from (SELECT * from covid_numbers ORDER BY infections DESC) t WHERE ` + argument + ` `;
 	connection.query(sql, function(error, results, fields) {
 		if (error) {
 			res.send("You made this Error: " + error);
