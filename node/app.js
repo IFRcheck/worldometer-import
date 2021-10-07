@@ -91,8 +91,6 @@ const c = new Crawler({
 
 				let ifr = (deaths / (population / 100));
 
-				ifr = Math.round(ifr * 10000) / 10000;
-
 				let aboveIoannidis = 0;
 
 				if (ifr > 0.15) {
@@ -100,8 +98,6 @@ const c = new Crawler({
 				}
 
 				let cfr = (deaths / (infections / 100));
-
-				cfr = Math.round(cfr * 10000) / 10000;
 
 				if (country === "MS Zaandam" || country === "Diamond Princess") {} else {
 					updateDatabase(country, infections, deaths, population, ifr, aboveIoannidis, cfr);
