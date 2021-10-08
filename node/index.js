@@ -66,6 +66,9 @@ const c = new Crawler({
 			const $ = res.$;
 
 			let rows = $("#main_table_countries_today tbody:first-of-type tr:not('.total_row_world')");
+			let totalInfections = 0;
+			let totalDeaths = 0;
+			let totalPopulation = 0;
 
 			for (var i = 0; i < rows.length; i++) {
 				let cRow = rows[i];
@@ -100,9 +103,19 @@ const c = new Crawler({
 				let cfr = (deaths / (infections / 100));
 
 				if (country === "MS Zaandam" || country === "Diamond Princess") {} else {
+					totalInfections += infections;
+					totalDeaths += deaths;
+					totalPopulation += population;
 					updateDatabase(country, infections, deaths, population, ifr, aboveIoannidis, cfr);
 				}
 			}
+			let totalIfr = (totalDeaths / (totalPopulation / 100));
+			let totalCfr = (totalDeaths / (totalInfections / 100));
+			let totalIoannidis = 0
+			if (totalIfr > 0.15) {
+				totalIoannidis = 1;
+			}
+			updateDatabase("Total", totalInfections, totalDeaths, totalPopulation, totalIfr, totalIoannidis, totalCfr);
 		}
 		done();
 	}
