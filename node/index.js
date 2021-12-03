@@ -7,16 +7,16 @@ const cors = require('cors');
 const app = express();
 const cron = require('node-cron');
 
-const corsOptions = {
+/*const corsOptions = {
 	origin: [
 		"https://ifrcheck.de",
 		"https://www.ifrcheck.de"
 	]
-}
+}*/
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors(corsOptions));
+app.use(cors());
 
 const connection = mysql.createConnection({
 	host: process.env.host,
