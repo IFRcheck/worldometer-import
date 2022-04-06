@@ -11,7 +11,7 @@ const corsOptions = {
 	origin: [
 		"https://ifrcheck.de",
 		"https://www.ifrcheck.de",
-		"http://localhost:8080",
+		"http://localhost:8080", // For Frontend-Devmode
 	],
 };
 
