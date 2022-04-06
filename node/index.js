@@ -10,9 +10,10 @@ const cron = require('node-cron');
 const corsOptions = {
 	origin: [
 		"https://ifrcheck.de",
-		"https://www.ifrcheck.de"
-	]
-}
+		"https://www.ifrcheck.de",
+		"http://localhost:8080",
+	],
+};
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
